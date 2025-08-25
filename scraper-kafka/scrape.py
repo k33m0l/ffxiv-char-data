@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 from kafka import KafkaProducer
 
 URL = "https://eu.finalfantasyxiv.com/lodestone/character/"
-CHARACTER_IDS = range(1, 5)
+CHARACTER_IDS = range(1, 500)
 
 def scrape(id: str):
     response = requests.get(url=URL + id)
