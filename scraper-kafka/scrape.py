@@ -1,0 +1,40 @@
+import requests
+from bs4 import BeautifulSoup
+
+URL = "https://eu.finalfantasyxiv.com/lodestone/character/"
+CHARACTER_IDS = range(1, 5)
+
+def scrape(id: str):
+    response = requests.get(url=URL + id)
+    soup = BeautifulSoup(response.text, "html.parser")
+
+    data = {}
+    data.update({"id": id})
+    if soup.find(name="h1", class_="error__heading"):
+        pass
+    else:
+        data = {}
+        data.update({"name": soup.find(name="p", class_="frame__chara__name").text})
+        data.update({"world": soup.find(name="p", class_="frame__chara__world").text})
+
+        try:
+            data.update({"title": soup.find(name="p", class_="frame__chara__title").text})
+        except AttributeError:
+            pass
+
+        player_details = soup.select('div.character__profile__data__detail div.character-block__box')
+        for detail in player_details:
+            if detail.select('div.character__freecompany__name h4 a'):
+                fc_name = detail.select('div.character__freecompany__name h4 a')[0].text
+                data.update({"fc": fc_name})
+            else:
+                ps = detail.find_all("p")
+                key = ps[0].text
+                value = ps[1].text
+                data.update({key: value})
+    return data
+
+results = []
+for id in CHARACTER_IDS:
+    results.append(scrape(str(id)))
+print(results)
