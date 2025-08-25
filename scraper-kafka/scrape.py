@@ -1,5 +1,7 @@
 import requests
+import argparse
 from bs4 import BeautifulSoup
+from kafka import KafkaProducer
 
 URL = "https://eu.finalfantasyxiv.com/lodestone/character/"
 CHARACTER_IDS = range(1, 5)
@@ -34,7 +36,13 @@ def scrape(id: str):
                 data.update({key: value})
     return data
 
-results = []
+parser = argparse.ArgumentParser()
+parser.add_argument("-i", type=str, help="Kafka broker IP address")
+args = parser.parse_args()
+
+producer = KafkaProducer(bootstrap_servers=args.i + ':9092')
+
 for id in CHARACTER_IDS:
-    results.append(scrape(str(id)))
-print(results)
+    data = scrape(str(id))
+    producer.send("player", data)
+    producer.flush()
