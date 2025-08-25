@@ -1,5 +1,6 @@
 import requests
 import argparse
+import json
 from bs4 import BeautifulSoup
 from kafka import KafkaProducer
 
@@ -40,7 +41,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-i", type=str, help="Kafka broker IP address")
 args = parser.parse_args()
 
-producer = KafkaProducer(bootstrap_servers=args.i + ':9092')
+producer = KafkaProducer(bootstrap_servers=args.i + ':9092', value_serializer=lambda v: json.dumps(v).encode('utf-8'))
 
 for id in CHARACTER_IDS:
     data = scrape(str(id))
