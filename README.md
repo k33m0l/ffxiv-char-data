@@ -1,6 +1,10 @@
 # ffxiv-char-spider
 Gather data of FFXIV Characters created
 
+> [!CAUTION]
+> This version is quite a bit more expensive and very unfinished.
+> I highly advise against using it.
+
 ## Why Kafka
 There is an unfinished version using Kafka.
 
