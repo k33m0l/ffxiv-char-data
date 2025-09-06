@@ -77,7 +77,7 @@ Resources:
     Type: AWS::Events::Rule
     Properties:
       Name: FFXIVDynamoToSQSRule
-      ScheduleExpression: rate(1 hour)
+      ScheduleExpression: rate(15 minutes)
       State: ENABLED
       Targets:
         - Arn: !GetAtt LoaderLambdaFunction.Arn
