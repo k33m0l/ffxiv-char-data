@@ -29,7 +29,7 @@ def process_messages():
 
     if not messages:
         print("No messages to process")
-        return {"processed": 0}
+        return 0
 
     for message in messages:
         try:
