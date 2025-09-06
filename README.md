@@ -23,7 +23,7 @@ Gather data of FFXIV Characters created
 
 ## Deployment
 1. Publish loader
-   1. Create a ZIP file of the `loader` folder
+   1. Create a ZIP file of the `loader` folder (The loader folder must be within the ZIP file)
    2. Upload to S3
 2. Deploy the CloudFormation template
    1. DynamoDBTableName = `FFXIV` (or the name you provided during [Database setup](#database-setup))
