@@ -66,6 +66,7 @@ Resources:
       Handler: loader.loader.lambda_handler
       Role: !GetAtt LoaderLambdaExecutionRole.Arn
       Timeout: 120
+      MemorySize: 512
       Code:
         S3Bucket: !Ref LambdaCodeBucket
         S3Key: !Ref LoaderLambdaCodeKey
