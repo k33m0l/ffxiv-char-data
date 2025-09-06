@@ -12,6 +12,9 @@ Parameters:
   LoaderLambdaCodeKey:
     Type: String
     Description: S3 key (zip file) of Lambda deployment package for the loader function
+  ScraperLambdaCodeKey:
+    Type: String
+    Description: S3 key (zip file) of Lambda deployment package for the scraper function
 
 Resources:
   IdQueue:
@@ -83,3 +86,51 @@ Resources:
       Action: lambda:InvokeFunction
       Principal: events.amazonaws.com
       SourceArn: !GetAtt LoaderEventRule.Arn
+  ScraperLambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: LambdaPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: "*"
+  ScraperLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: FinalFantasyScraperFucntion
+      Runtime: python3.11
+      Handler: scraper.finalfantasyscraper.lambda_handler
+      Role: !GetAtt ScraperLambdaExecutionRole.Arn
+      Timeout: 120
+      Code:
+        S3Bucket: !Ref LambdaCodeBucket
+        S3Key: !Ref ScraperLambdaCodeKey
+  ScraperEventRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: FFXIVDataToDynamoDBRule
+      ScheduleExpression: rate(1 second)
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt ScraperLambdaFunction.Arn
+          Id: FFXIVDataToDynamoDBTarget
+  ScraperLambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref ScraperLambdaFunction
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt ScraperEventRule.Arn
