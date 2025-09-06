@@ -20,3 +20,12 @@ Gather data of FFXIV Characters created
     * Index name = status-index
     * Attribute Projection = All
   * This may take a while (~10 minutes)
+
+## Deployment
+1. Publish loader
+   1. Create a ZIP file of the `loader` folder
+   2. Upload to S3
+2. Deploy the CloudFormation template
+   1. DynamoDBTableName = `FFXIV` (or the name you provided during [Database setup](#database-setup))
+   2. LambdaCodeBucket = `ffxiv-data-gdsafgdgfdg` (the name of the S3 bucket where the ZIP files are uploaded)
+   3. LoaderLambdaCodeKey = `loader.zip` (the name of the zip file)
