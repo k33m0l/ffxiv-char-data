@@ -106,6 +106,16 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
+                  - dynamodb:UpdateItem
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - sqs:ReceiveMessage
+                  - sqs:DeleteMessage
+                  - sqs:GetQueueAttributes
+                Resource: !GetAtt IdQueue.Arn
+              - Effect: Allow
+                Action:
                   - logs:CreateLogGroup
                   - logs:CreateLogStream
                   - logs:PutLogEvents
@@ -121,15 +131,19 @@ Resources:
       Code:
         S3Bucket: !Ref LambdaCodeBucket
         S3Key: !Ref ScraperLambdaCodeKey
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref DynamoDBTableName
+          QUEUE_URL: !Ref IdQueue
   ScraperEventRule:
     Type: AWS::Events::Rule
     Properties:
-      Name: FFXIVDataToDynamoDBRule
-      ScheduleExpression: rate(1 second)
+      Name: FFXIVSQSToDynamoEventRule
+      ScheduleExpression: rate(1 minute)
       State: ENABLED
       Targets:
         - Arn: !GetAtt ScraperLambdaFunction.Arn
-          Id: FFXIVDataToDynamoDBTarget
+          Id: SQSToDynamoTarget
   ScraperLambdaInvokePermission:
     Type: AWS::Lambda::Permission
     Properties:
