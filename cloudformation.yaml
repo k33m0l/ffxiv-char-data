@@ -5,15 +5,18 @@ Description: Scrape FFXIV player data
 Parameters:
   DynamoDBTableName:
     Type: String
+    Default: FFXIV
     Description: Name the DynamoDB table
   LambdaCodeBucket:
     Type: String
     Description: S3 bucket containing Lambda deployment package
   LoaderLambdaCodeKey:
     Type: String
+    Default: loader.zip
     Description: S3 key (zip file) of Lambda deployment package for the loader function
   ScraperLambdaCodeKey:
     Type: String
+    Default: scraper.zip
     Description: S3 key (zip file) of Lambda deployment package for the scraper function
 
 Resources:
