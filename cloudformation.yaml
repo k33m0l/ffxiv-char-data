@@ -1,0 +1,85 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: Scrape FFXIV player data
+
+Parameters:
+  DynamoDBTableName:
+    Type: String
+    Description: Name the DynamoDB table
+  LambdaCodeBucket:
+    Type: String
+    Description: S3 bucket containing Lambda deployment package
+  LoaderLambdaCodeKey:
+    Type: String
+    Description: S3 key (zip file) of Lambda deployment package for the loader function
+
+Resources:
+  IdQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      VisibilityTimeout: 120
+      MessageRetentionPeriod: 86400
+      QueueName: FFXIVPlayerQueue
+      Tags:
+        - Key: Project
+          Value: FFXIV
+  LoaderLambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: LambdaPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:Query
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - sqs:SendMessage
+                Resource: !GetAtt IdQueue.Arn
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: "*"
+  LoaderLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: DynamoToSQSFunction
+      Runtime: python3.11
+      Handler: loader.loader.lambda_handler
+      Role: !GetAtt LoaderLambdaExecutionRole.Arn
+      Timeout: 120
+      Code:
+        S3Bucket: !Ref LambdaCodeBucket
+        S3Key: !Ref LoaderLambdaCodeKey
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref DynamoDBTableName
+          QUEUE_URL: !Ref IdQueue
+  LoaderEventRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: FFXIVDynamoToSQSRule
+      ScheduleExpression: rate(1 hour)
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt LoaderLambdaFunction.Arn
+          Id: DynamoToSQSTarget
+  LoaderLambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref LoaderLambdaFunction
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt LoaderEventRule.Arn
