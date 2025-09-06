@@ -10,11 +10,13 @@ sqs = boto3.client("sqs")
 TABLE_NAME = os.environ.get("TABLE_NAME")
 QUEUE_URL = os.environ.get("QUEUE_URL")
 
+
 def upload_data(data_id):
     table = dynamodb.Table(TABLE_NAME)
     table.update_item(
         Key={"id": data_id},
-        UpdateExpression="set status=:s",
+        UpdateExpression="set #st=:s",
+        ExpressionAttributeNames={"#st": "status"},
         ExpressionAttributeValues={":s": "DONE"},
         ReturnValues="NONE"
     )
