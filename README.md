@@ -25,7 +25,11 @@ Gather data of FFXIV Characters created
 1. Publish loader
    1. Create a ZIP file of the `loader` folder (The loader folder must be within the ZIP file)
    2. Upload to S3
-2. Deploy the CloudFormation template
+2. Publish scraper
+   1. Create a ZIP file of the `scraper` folder (The scraper folder must be within the ZIP file)
+   2. Upload to S3
+3. Deploy the CloudFormation template
    1. DynamoDBTableName = `FFXIV` (or the name you provided during [Database setup](#database-setup))
    2. LambdaCodeBucket = `ffxiv-data-gdsafgdgfdg` (the name of the S3 bucket where the ZIP files are uploaded)
    3. LoaderLambdaCodeKey = `loader.zip` (the name of the zip file)
+   4. ScraperLambdaCodeKey = `scraper.zip` (the name of the zip file)
