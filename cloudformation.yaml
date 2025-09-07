@@ -158,7 +158,7 @@ Resources:
     Type: AWS::Events::Rule
     Properties:
       Name: FFXIVSQSToDynamoEventRule
-      ScheduleExpression: rate(2 minute)
+      ScheduleExpression: rate(2 minutes)
       State: ENABLED
       Targets:
         - Arn: !GetAtt ScraperLambdaFunction.Arn
