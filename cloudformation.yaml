@@ -128,7 +128,8 @@ Resources:
       Runtime: python3.11
       Handler: scraper.finalfantasyscraper.lambda_handler
       Role: !GetAtt ScraperLambdaExecutionRole.Arn
-      Timeout: 120
+      Timeout: 180
+      MemorySize: 384
       Code:
         S3Bucket: !Ref LambdaCodeBucket
         S3Key: !Ref ScraperLambdaCodeKey
