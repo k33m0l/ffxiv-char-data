@@ -8,6 +8,7 @@ Gather data of FFXIV Characters created
 
 ## Requirements
 * An AWS account
+* Python3
 
 ## Database setup
 * Generate the base CSV using the [base_csv_generator.py](util/base_csv_generator.py)
@@ -21,6 +22,15 @@ Gather data of FFXIV Characters created
     * Attribute Projection = All
   * This may take a while (~10 minutes)
 
+## Creating a Lambda Layer
+* `python -m venv .venv`
+* `source .venv/Scripts/activate`
+* `cd scraper`
+* `pip install -r requirements.txt`
+* `cd .venv/Lib/site-packages`
+* Zip the content of the directory
+* Upload to S3
+
 ## Deployment
 1. Publish loader
    1. Create a ZIP file of the `loader` folder (The loader folder must be within the ZIP file)
@@ -33,3 +43,4 @@ Gather data of FFXIV Characters created
    2. LambdaCodeBucket = `ffxiv-data-gdsafgdgfdg` (the name of the S3 bucket where the ZIP files are uploaded)
    3. LoaderLambdaCodeKey = `loader.zip` (the name of the zip file)
    4. ScraperLambdaCodeKey = `scraper.zip` (the name of the zip file)
+   5. ScraperLayerCodeKey = `scraper-layer.zip` (the name of the zip file)
