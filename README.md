@@ -28,7 +28,8 @@ Gather data of FFXIV Characters created
 * `cd scraper`
 * `pip install -r requirements.txt`
 * `cd .venv/Lib/site-packages`
-* Zip the content of the directory
+* Copy all files into a directory called `python`
+* Zip the newly created directory (The first file within the zip must be the directory)
 * Upload to S3
 
 ## Deployment
