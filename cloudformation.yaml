@@ -122,6 +122,7 @@ Resources:
               - Effect: Allow
                 Action:
                   - dynamodb:UpdateItem
+                  - dynamodb:DeleteItem
                 Resource: "*"
               - Effect: Allow
                 Action:
@@ -142,7 +143,7 @@ Resources:
       Runtime: python3.11
       Handler: scraper.finalfantasyscraper.lambda_handler
       Role: !GetAtt ScraperLambdaExecutionRole.Arn
-      Timeout: 180
+      Timeout: 360
       MemorySize: 384
       Code:
         S3Bucket: !Ref LambdaCodeBucket
@@ -157,7 +158,7 @@ Resources:
     Type: AWS::Events::Rule
     Properties:
       Name: FFXIVSQSToDynamoEventRule
-      ScheduleExpression: rate(1 minute)
+      ScheduleExpression: rate(2 minute)
       State: ENABLED
       Targets:
         - Arn: !GetAtt ScraperLambdaFunction.Arn
