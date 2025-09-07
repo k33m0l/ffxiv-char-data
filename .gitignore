@@ -4,6 +4,7 @@ small_base_ids.csv
 loader.zip
 scraper.zip
 scraper-layer.zip
+python/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
