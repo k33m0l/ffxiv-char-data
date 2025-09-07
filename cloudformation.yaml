@@ -18,6 +18,10 @@ Parameters:
     Type: String
     Default: scraper.zip
     Description: S3 key (zip file) of Lambda deployment package for the scraper function
+  ScraperLayerCodeKey:
+    Type: String
+    Default: scraper-layer.zip
+    Description: S3 key (zip file) of Lambda deployment package for the scraper layer
 
 Resources:
   IdQueue:
@@ -90,6 +94,16 @@ Resources:
       Action: lambda:InvokeFunction
       Principal: events.amazonaws.com
       SourceArn: !GetAtt LoaderEventRule.Arn
+  ScraperLayer:
+    Type: AWS::Lambda::LayerVersion
+    Properties:
+      LayerName: scraper-layer
+      Description: Lambda Layer for web scraping
+      Content:
+        S3Bucket: !Ref LambdaCodeBucket
+        S3Key: !Ref ScraperLayerCodeKey
+      CompatibleRuntimes:
+        - python3.11
   ScraperLambdaExecutionRole:
     Type: AWS::IAM::Role
     Properties:
@@ -137,6 +151,8 @@ Resources:
         Variables:
           TABLE_NAME: !Ref DynamoDBTableName
           QUEUE_URL: !Ref IdQueue
+      Layers:
+        - !Ref ScraperLayer
   ScraperEventRule:
     Type: AWS::Events::Rule
     Properties:
