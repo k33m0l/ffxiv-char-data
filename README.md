@@ -11,7 +11,7 @@ Gather data of FFXIV Characters created
 * Python3
 
 ## Architecture
-TODO
+![Architecture diagram for the app](https://github.com/k33m0l/ffxiv-char-spider/blob/main/FFXIV-crawler.drawio.png)
 
 ## Configure
 TODO
