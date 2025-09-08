@@ -2,7 +2,7 @@ import pandas
 import uuid
 
 lower_limit = 1
-upper_limit = 40_000_000
+upper_limit = 1_000_000
 notification_threshold = 100_000
 
 uuid_list = []
