@@ -27,6 +27,7 @@ def fetch_items():
         )
 
     items += response.get("Items", [])
+    print(f"New item count is {len(items)}")
     start_key = response.get("LastEvaluatedKey")
 
 start_key = None
