@@ -9,6 +9,7 @@ LIMIT = 200
 table = dynamodb.Table(TABLE_NAME)
 
 def fetch_items():
+    print("Fetching next batch...")
     global start_key
     global items
     if start_key is not None:
