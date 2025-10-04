@@ -9,6 +9,8 @@ Gather data of FFXIV Characters created
 ## Requirements
 * An AWS account
 * Python3
+* AWS CLI
+* AWS SAM
 
 ## Architecture
 ![Architecture diagram for the app](https://github.com/k33m0l/ffxiv-char-spider/blob/main/FFXIV-crawler.drawio.png)
@@ -38,16 +40,18 @@ Gather data of FFXIV Characters created
 * Upload to S3
 
 ### Deployment to AWS
-1. Publish loader
-   1. Create a ZIP file of the `loader` folder (The loader folder must be within the ZIP file)
-   2. Upload to S3
-2. Publish scraper
-   1. Create a ZIP file of the `scraper` folder (The scraper folder must be within the ZIP file)
-   2. Upload to S3
-3. Deploy the CloudFormation template
-   1. DynamoDBTableName = `FFXIV` (or the name you provided during [Database setup](#database-setup))
-   2. DataBucket = `ffxiv-data-gdsafgdgfdg` (the name of the S3 bucket where the files are uploaded)
-   3. DataS3Key = `base_ids.csv` (the name of base CSV file)
-   3. LoaderLambdaCodeKey = `loader.zip` (the name of the zip file)
-   4. ScraperLambdaCodeKey = `scraper.zip` (the name of the zip file)
-   5. ScraperLayerCodeKey = `scraper-layer.zip` (the name of the zip file)
+1. Package SAM
+   1. Replace `{add-s3-bucket-here}` in the command with your S3 bucket name
+```shell
+sam package --template-file .\cloudformation-template.yaml --output-template-file packaged.yaml --s3-bucket {add-s3-bucket-here} --s3-prefix templates
+```
+2. Deploy SAM 
+   1. Replace `{add-s3-bucket-here}` in the command with your S3 bucket name
+   2. Repalce `{add-csv-filename-here}` in the command with you CSV file name
+```shell
+sam deploy --template-file .\packaged.yaml --stack-name FFXIV --capabilities CAPABILITY_IAM --parameter-overrides ParameterKey=DataBucket,ParameterValue={add-s3-bucket-here} ParameterKey=DataS3Key,ParameterValue={add-csv-filename-here}
+```
+3. Wait patiently :) Do not forget to delete the CloudFormation Stack if you don't want to run this anymore. It won't auto delete.
+```shell
+sam delete --stack-name FFXIV
+```

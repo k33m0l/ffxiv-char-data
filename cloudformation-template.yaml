@@ -1,4 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
 
 Description: Scrape FFXIV player data
 
@@ -13,14 +14,6 @@ Parameters:
   DataS3Key:
     Type: String
     Description: CSV file which contains base template for DynamoDB
-  LoaderLambdaCodeKey:
-    Type: String
-    Default: loader.zip
-    Description: S3 key (zip file) of Lambda deployment package for the loader function
-  ScraperLambdaCodeKey:
-    Type: String
-    Default: scraper.zip
-    Description: S3 key (zip file) of Lambda deployment package for the scraper function
   ScraperLayerCodeKey:
     Type: String
     Default: scraper-layer.zip
@@ -96,17 +89,15 @@ Resources:
                   - logs:PutLogEvents
                 Resource: "*"
   LoaderLambdaFunction:
-    Type: AWS::Lambda::Function
+    Type: AWS::Serverless::Function
     Properties:
       FunctionName: DynamoToSQSFunction
+      CodeUri: ./loader
+      Handler: loader.lambda_handler
       Runtime: python3.11
-      Handler: loader.loader.lambda_handler
       Role: !GetAtt LoaderLambdaExecutionRole.Arn
       Timeout: 120
       MemorySize: 512
-      Code:
-        S3Bucket: !Ref DataBucket
-        S3Key: !Ref LoaderLambdaCodeKey
       Environment:
         Variables:
           TABLE_NAME: !Ref DynamoDBTableName
@@ -170,17 +161,15 @@ Resources:
                   - logs:PutLogEvents
                 Resource: "*"
   ScraperLambdaFunction:
-    Type: AWS::Lambda::Function
+    Type: AWS::Serverless::Function
     Properties:
       FunctionName: FinalFantasyScraperFucntion
+      CodeUri: ./scraper
+      Handler: scraper.lambda_handler
       Runtime: python3.11
-      Handler: scraper.finalfantasyscraper.lambda_handler
       Role: !GetAtt ScraperLambdaExecutionRole.Arn
       Timeout: 360
       MemorySize: 384
-      Code:
-        S3Bucket: !Ref DataBucket
-        S3Key: !Ref ScraperLambdaCodeKey
       Environment:
         Variables:
           TABLE_NAME: !Ref DynamoDBTableName
