@@ -14,10 +14,6 @@ Parameters:
   DataS3Key:
     Type: String
     Description: CSV file which contains base template for DynamoDB
-  ScraperLayerCodeKey:
-    Type: String
-    Default: scraper-layer.zip
-    Description: S3 key (zip file) of Lambda deployment package for the scraper layer
 
 Resources:
   Database:
