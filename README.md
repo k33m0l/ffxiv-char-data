@@ -24,9 +24,7 @@ Gather data of FFXIV Characters created
 * Update [ScraperEventRule](https://github.com/k33m0l/ffxiv-char-spider/blob/07d3f5eb96ad078d52ace86407008e6bd96be0dd/cloudformation.yaml#L161) timing to change how often the scraper lambda gets triggered
 
 ## Deployment
-
-### Prerequisites
-#### Database base CSV
+### Database base CSV
 * Generate the base CSV using the [base_csv_generator.py](util/base_csv_generator.py)
 * Create an S3 bucket or use an existing one
 * Upload the [base_ids.csv](util/base_ids.csv) to S3
