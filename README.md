@@ -21,17 +21,11 @@ Gather data of FFXIV Characters created
 
 ## Deployment
 
-### Database setup
+### Prerequisites
+#### Database base CSV
 * Generate the base CSV using the [base_csv_generator.py](util/base_csv_generator.py)
-* (Optional) Create an S3 bucket
+* Create an S3 bucket or use an existing one
 * Upload the [base_ids.csv](util/base_ids.csv) to S3
-* Using the [DynamoDB import from S3](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/S3DataImport.HowItWorks.html) feature, import the CSV.
-  * You can use the first line for keys and `id` as the partition key.
-  * Create a Global Secondary Index for the status
-    * Partition Key = status
-    * Index name = status-index
-    * Attribute Projection = All
-  * This may take a while (~10 minutes)
 
 ### Creating a Lambda Layer
 * `python -m venv .venv`
@@ -52,7 +46,8 @@ Gather data of FFXIV Characters created
    2. Upload to S3
 3. Deploy the CloudFormation template
    1. DynamoDBTableName = `FFXIV` (or the name you provided during [Database setup](#database-setup))
-   2. LambdaCodeBucket = `ffxiv-data-gdsafgdgfdg` (the name of the S3 bucket where the ZIP files are uploaded)
+   2. DataBucket = `ffxiv-data-gdsafgdgfdg` (the name of the S3 bucket where the files are uploaded)
+   3. DataS3Key = `base_ids.csv` (the name of base CSV file)
    3. LoaderLambdaCodeKey = `loader.zip` (the name of the zip file)
    4. ScraperLambdaCodeKey = `scraper.zip` (the name of the zip file)
    5. ScraperLayerCodeKey = `scraper-layer.zip` (the name of the zip file)

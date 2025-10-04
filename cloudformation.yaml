@@ -7,9 +7,12 @@ Parameters:
     Type: String
     Default: FFXIV
     Description: Name the DynamoDB table
-  LambdaCodeBucket:
+  DataBucket:
     Type: String
-    Description: S3 bucket containing Lambda deployment package
+    Description: S3 bucket containing Lambda deployment package and base CSV
+  DataS3Key:
+    Type: String
+    Description: CSV file which contains base template for DynamoDB
   LoaderLambdaCodeKey:
     Type: String
     Default: loader.zip
@@ -24,6 +27,38 @@ Parameters:
     Description: S3 key (zip file) of Lambda deployment package for the scraper layer
 
 Resources:
+  Database:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      Tags:
+        - Key: Project
+          Value: FFXIV
+      TableClass: STANDARD
+      TableName: !Ref DynamoDBTableName
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: status
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+      ImportSourceSpecification:
+        InputCompressionType: NONE
+        InputFormat: CSV
+        S3BucketSource:
+          S3Bucket: !Ref DataBucket
+          S3KeyPrefix: !Ref DataS3Key
+      GlobalSecondaryIndexes:
+        - IndexName: status-index
+          KeySchema:
+            - AttributeName: status
+              KeyType: HASH
+          Projection:
+            NonKeyAttributes:
+              - player_id
+            ProjectionType: INCLUDE
   IdQueue:
     Type: AWS::SQS::Queue
     Properties:
@@ -72,7 +107,7 @@ Resources:
       Timeout: 120
       MemorySize: 512
       Code:
-        S3Bucket: !Ref LambdaCodeBucket
+        S3Bucket: !Ref DataBucket
         S3Key: !Ref LoaderLambdaCodeKey
       Environment:
         Variables:
@@ -100,7 +135,7 @@ Resources:
       LayerName: scraper-layer
       Description: Lambda Layer for web scraping
       Content:
-        S3Bucket: !Ref LambdaCodeBucket
+        S3Bucket: !Ref DataBucket
         S3Key: !Ref ScraperLayerCodeKey
       CompatibleRuntimes:
         - python3.11
@@ -146,7 +181,7 @@ Resources:
       Timeout: 360
       MemorySize: 384
       Code:
-        S3Bucket: !Ref LambdaCodeBucket
+        S3Bucket: !Ref DataBucket
         S3Key: !Ref ScraperLambdaCodeKey
       Environment:
         Variables:
