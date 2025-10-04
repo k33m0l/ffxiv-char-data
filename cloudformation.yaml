@@ -56,9 +56,7 @@ Resources:
             - AttributeName: status
               KeyType: HASH
           Projection:
-            NonKeyAttributes:
-              - player_id
-            ProjectionType: INCLUDE
+            ProjectionType: ALL
   IdQueue:
     Type: AWS::SQS::Queue
     Properties:
