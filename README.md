@@ -33,6 +33,8 @@ Gather data of FFXIV Characters created
 1. Package dependencies by running `make build-layer`
 2. Build template with `sam build`
 3. (Optional) Validate using `sam validate`
-4. Deploy using `sam deploy --guided` and follow the instructions 
+4. Deploy using `sam deploy --guided` and follow the instructions
+   1. It takes a while because it's filling up the DynamoDB Table with the items from the CSV
+   2. ~10-15 minutes
 5. Wait patiently :) Do not forget to delete the CloudFormation Stack if you don't want to run this anymore. It won't auto delete.
    1. You can delete the resources with `sam delete --stack-name FFXIV`, where stack-name is what you provided during the deployment
