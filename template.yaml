@@ -94,7 +94,7 @@ Resources:
       FunctionName: DynamoToSQSFunction
       CodeUri: ./loader
       Handler: loader.lambda_handler
-      Runtime: python3.11
+      Runtime: python3.13
       Role: !GetAtt LoaderLambdaExecutionRole.Arn
       Timeout: 120
       MemorySize: 512
@@ -119,15 +119,13 @@ Resources:
       Principal: events.amazonaws.com
       SourceArn: !GetAtt LoaderEventRule.Arn
   ScraperLayer:
-    Type: AWS::Lambda::LayerVersion
+    Type: AWS::Serverless::LayerVersion
     Properties:
-      LayerName: scraper-layer
+      ContentUri: layer
       Description: Lambda Layer for web scraping
-      Content:
-        S3Bucket: !Ref DataBucket
-        S3Key: !Ref ScraperLayerCodeKey
       CompatibleRuntimes:
-        - python3.11
+        - python3.13
+      RetentionPolicy: Delete
   ScraperLambdaExecutionRole:
     Type: AWS::IAM::Role
     Properties:
@@ -166,7 +164,7 @@ Resources:
       FunctionName: FinalFantasyScraperFucntion
       CodeUri: ./scraper
       Handler: scraper.lambda_handler
-      Runtime: python3.11
+      Runtime: python3.13
       Role: !GetAtt ScraperLambdaExecutionRole.Arn
       Timeout: 360
       MemorySize: 384

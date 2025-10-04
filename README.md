@@ -8,9 +8,11 @@ Gather data of FFXIV Characters created
 
 ## Requirements
 * An AWS account
-* Python3
 * AWS CLI
 * AWS SAM
+* Python3.13
+* Pip
+* Make
 
 ## Architecture
 ![Architecture diagram for the app](https://github.com/k33m0l/ffxiv-char-spider/blob/main/FFXIV-crawler.drawio.png)
@@ -29,29 +31,10 @@ Gather data of FFXIV Characters created
 * Create an S3 bucket or use an existing one
 * Upload the [base_ids.csv](util/base_ids.csv) to S3
 
-### Creating a Lambda Layer
-* `python -m venv .venv`
-* `source .venv/Scripts/activate`
-* `cd scraper`
-* `pip install -r requirements.txt`
-* `cd .venv/Lib/site-packages`
-* Copy all files into a directory called `python`
-* Zip the newly created directory (The first file within the zip must be the directory)
-* Upload to S3
-
-### Deployment to AWS
-1. Package SAM
-   1. Replace `{add-s3-bucket-here}` in the command with your S3 bucket name
-```shell
-sam package --template-file .\cloudformation-template.yaml --output-template-file packaged.yaml --s3-bucket {add-s3-bucket-here} --s3-prefix templates
-```
-2. Deploy SAM 
-   1. Replace `{add-s3-bucket-here}` in the command with your S3 bucket name
-   2. Repalce `{add-csv-filename-here}` in the command with you CSV file name
-```shell
-sam deploy --template-file .\packaged.yaml --stack-name FFXIV --capabilities CAPABILITY_IAM --parameter-overrides ParameterKey=DataBucket,ParameterValue={add-s3-bucket-here} ParameterKey=DataS3Key,ParameterValue={add-csv-filename-here}
-```
-3. Wait patiently :) Do not forget to delete the CloudFormation Stack if you don't want to run this anymore. It won't auto delete.
-```shell
-sam delete --stack-name FFXIV
-```
+### Deployment
+1. Package dependencies by running `make build-layer`
+2. Build template with `sam build`
+3. (Optional) Validate using `sam validate`
+4. Deploy using `sam deploy --guided` and follow the instructions 
+5. Wait patiently :) Do not forget to delete the CloudFormation Stack if you don't want to run this anymore. It won't auto delete.
+   1. You can delete the resources with `sam delete --stack-name FFXIV`, where stack-name is what you provided during the deployment

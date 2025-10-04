@@ -2,11 +2,8 @@
 base_ids.csv
 small_base_ids.csv
 results.csv
-loader.zip
-scraper.zip
-scraper-layer.zip
-packaged.yaml
-python/
+layer/
+.aws-sam/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
