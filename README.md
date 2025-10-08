@@ -18,10 +18,13 @@ Gather data of FFXIV Characters created
 ![Architecture diagram for the app](https://github.com/k33m0l/ffxiv-char-spider/blob/main/FFXIV-crawler.drawio.png)
 
 ## Configure
-* With the default configuration, it ends up with roughly 3 requests/second. I recommend this or lower to avoid harm on the target website.
-* Update [FETCH_LIMIT](https://github.com/k33m0l/ffxiv-char-spider/blob/07d3f5eb96ad078d52ace86407008e6bd96be0dd/loader/loader.py#L12) to configure the number of IDs that go into SQS every 15 minutes
-* Update [LoaderEventRule](https://github.com/k33m0l/ffxiv-char-spider/blob/07d3f5eb96ad078d52ace86407008e6bd96be0dd/cloudformation.yaml#L85) timing to change how often the loader lambda gets triggered
-* Update [ScraperEventRule](https://github.com/k33m0l/ffxiv-char-spider/blob/07d3f5eb96ad078d52ace86407008e6bd96be0dd/cloudformation.yaml#L161) timing to change how often the scraper lambda gets triggered
+* There is a hard limit on 4500 request per 15 minutes and 5 requests per second, which can only be changed through code updates.
+* Update [FETCH_LIMIT](loader/loader.py) to configure the number of IDs that go into SQS every 15 minutes
+* Update [MAX_RATE_SECOND](scraper/scraper.py) to configure the maximum number of requests per second
+  * Be very careful with this to not send too many requests to the website 
+* Update [MAX_RATE_MINUTE](scraper/scraper.py) to configure how many messages it pulls from SQS every minute
+* Update [LoaderEventRule -> ScheduleExpression](template.yaml) timing to change how often the loader lambda gets triggered
+* Update [ScraperEventRule -> ScheduleExpression](template.yaml) timing to change how often the scraper lambda gets triggered
 
 ## Deployment
 ### Database base CSV
