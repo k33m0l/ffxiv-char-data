@@ -16,8 +16,8 @@ QUEUE_URL = os.environ.get("QUEUE_URL")
 
 MAX_RATE_MINUTE = 300
 MAX_RATE_SECOND = 5
-LIMIT_SECONDS = 1
-rate_limit = AsyncLimiter(MAX_RATE_SECOND, LIMIT_SECONDS)
+TIME_LIMIT_SECONDS = 1
+rate_limit = AsyncLimiter(MAX_RATE_SECOND, TIME_LIMIT_SECONDS)
 URL = "https://eu.finalfantasyxiv.com/lodestone/character/"
 
 
@@ -129,12 +129,16 @@ async def main(messages):
 
 
 def lambda_handler(event, context):
-    messages = sqs.receive_message(
-        QueueUrl=QUEUE_URL,
-        MaxNumberOfMessages=MAX_RATE_MINUTE,
-        WaitTimeSeconds=0,
-        VisibilityTimeout=120
-    ).get("Messages", [])
+    messages = []
+    while len(messages) < MAX_RATE_MINUTE:
+        messages.extend(
+            sqs.receive_message(
+                QueueUrl=QUEUE_URL,
+                MaxNumberOfMessages=10,
+                WaitTimeSeconds=0,
+                VisibilityTimeout=120
+            ).get("Messages", [])
+        )
 
     if not messages:
         print("No messages to process")
