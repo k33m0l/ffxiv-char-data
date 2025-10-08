@@ -138,9 +138,9 @@ def lambda_handler(event, context):
                 VisibilityTimeout=120
             ).get("Messages", [])
         )
+        if not messages:
+            print("No messages to process")
+            return {"processed": 0}
 
-    if not messages:
-        print("No messages to process")
-    else:
-        asyncio.run(main(messages))
+    asyncio.run(main(messages))
     return {"processed": len(messages)}
