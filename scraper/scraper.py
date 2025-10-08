@@ -114,12 +114,11 @@ async def do_task(session: ClientSession, url: str, data_id, sqs_handle):
 
 async def main(messages):
     async with aiohttp.ClientSession() as session:
-        json_messages = [json.loads(message["Body"]) for message in messages]
-
         tasks = []
-        for message in json_messages:
-            url = URL + message['player_id']
-            data_id = message['id']
+        for message in messages:
+            json_message = json.loads(message["Body"])
+            url = URL + json_message['player_id']
+            data_id = json_message['id']
             sqs_handle = message["ReceiptHandle"]
 
             tasks.append(
