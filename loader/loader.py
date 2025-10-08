@@ -9,7 +9,7 @@ sqs = boto3.client("sqs")
 
 TABLE_NAME = os.environ.get("TABLE_NAME")
 QUEUE_URL = os.environ.get("QUEUE_URL")
-FETCH_LIMIT = 1800
+FETCH_LIMIT = 4500
 
 def lambda_handler(event, context):
     table = dynamodb.Table(TABLE_NAME)

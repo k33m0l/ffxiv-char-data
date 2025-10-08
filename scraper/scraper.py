@@ -1,57 +1,71 @@
+import asyncio
 import json
 import os
-import time
-from bs4 import BeautifulSoup
-import requests
 
+import aiohttp
 import boto3
+from aiohttp import ClientSession
+from aiolimiter import AsyncLimiter
+from bs4 import BeautifulSoup
 
 dynamodb = boto3.resource("dynamodb")
 sqs = boto3.client("sqs")
 
 TABLE_NAME = os.environ.get("TABLE_NAME")
 QUEUE_URL = os.environ.get("QUEUE_URL")
+
+MAX_RATE_MINUTE = 300
+MAX_RATE_SECOND = 5
+LIMIT_SECONDS = 1
+rate_limit = AsyncLimiter(MAX_RATE_SECOND, LIMIT_SECONDS)
 URL = "https://eu.finalfantasyxiv.com/lodestone/character/"
 
-def scrape(player_id: str):
-    data = {}
-    try:
-        response = requests.get(url=URL + player_id)
-        if response.status_code == 404:
-            pass
-        else:
-            soup = BeautifulSoup(response.text, "html.parser")
-            data.update({"name": soup.find(name="p", class_="frame__chara__name").text})
-            data.update({"world": soup.find(name="p", class_="frame__chara__world").text})
 
+async def scrape(session: ClientSession, url: str):
+    async with rate_limit:
+        async with session.get(url) as response:
+            data = {}
             try:
-                data.update({"title": soup.find(name="p", class_="frame__chara__title").text})
-            except AttributeError:
-                pass
-
-            player_details = soup.select('div.character__profile__data__detail div.character-block__box')
-            for detail in player_details:
-                if detail.select('div.character__freecompany__name h4 a'):
-                    fc_name = detail.select('div.character__freecompany__name h4 a')[0].text
-                    data.update({"fc": fc_name})
-                elif detail.select('div.character__pvpteam__name h4 a'):
-                    pvp_name = detail.select('div.character__pvpteam__name h4 a')[0].text
-                    data.update({"pvp": pvp_name})
+                if response.status == 404:
+                    pass
                 else:
-                    ps = detail.find_all("p")
-                    key = ps[0].text
-                    value = ps[1].text
-                    data.update({key: value})
+                    website_text = await response.text()
+                    soup = BeautifulSoup(website_text, "html.parser")
+                    data.update({"name": soup.find(name="p", class_="frame__chara__name").text})
+                    data.update({"world": soup.find(name="p", class_="frame__chara__world").text})
 
-            player_levels = soup.select('div.character__level__list ul li')
-            for player_level_element in player_levels:
-                player_level = player_level_element.text
-                player_class = player_level_element.find('img')['data-tooltip']
-                data.update({player_class: player_level})
-    except Exception as ex:
-        print(f"Failed scraping data for player {player_id}: {ex}")
-        data.update({"error": "scraping error"})
-    return data
+                    # Title may not always be set for the player
+                    try:
+                        data.update({"title": soup.find(name="p", class_="frame__chara__title").text})
+                    except AttributeError:
+                        pass
+
+                    player_details = soup.select('div.character__profile__data__detail div.character-block__box')
+                    for detail in player_details:
+                        # Free company is optional data and has a different tag
+                        if detail.select('div.character__freecompany__name h4 a'):
+                            fc_name = detail.select('div.character__freecompany__name h4 a')[0].text
+                            data.update({"fc": fc_name})
+                        # PVP team is optional data and has a different tag
+                        elif detail.select('div.character__pvpteam__name h4 a'):
+                            pvp_name = detail.select('div.character__pvpteam__name h4 a')[0].text
+                            data.update({"pvp": pvp_name})
+                        else:
+                            ps = detail.find_all("p")
+                            key = ps[0].text
+                            value = ps[1].text
+                            data.update({key: value})
+
+                    player_levels = soup.select('div.character__level__list ul li')
+                    for player_level_element in player_levels:
+                        player_level = player_level_element.text
+                        player_class = player_level_element.find('img')['data-tooltip']
+                        data.update({player_class: player_level})
+            except Exception as ex:
+                print(f"Failed scraping data for url: '{url}': {ex}")
+                data.update({"error": "scraping error"})
+            return data
+
 
 def upload_data(data_id, player_data):
     try:
@@ -71,6 +85,7 @@ def upload_data(data_id, player_data):
     except Exception as ex:
         print(f"Failed uploading data id {data_id}: {ex}")
 
+
 def delete_db_row(data_id):
     try:
         table = dynamodb.Table(TABLE_NAME)
@@ -80,47 +95,49 @@ def delete_db_row(data_id):
     except Exception as ex:
         print(f"Failed deleting data with id {data_id}: {ex}")
 
-def process_messages():
+
+async def do_task(session: ClientSession, url: str, data_id, sqs_handle):
+    data = await scrape(session, url)
+    if not data:
+        delete_db_row(data_id)
+    else:
+        upload_data(data_id, data)
+    sqs.delete_message(
+        QueueUrl=QUEUE_URL,
+        ReceiptHandle=sqs_handle
+    )
+    if not data:
+        print(f"Player id processed without results and removed: '{url}'")
+    else:
+        print(f"Player {data['name']} was processed")
+
+
+async def main(messages):
+    async with aiohttp.ClientSession() as session:
+        json_messages = [json.loads(message["Body"]) for message in messages]
+
+        tasks = []
+        for message in json_messages:
+            url = URL + message['player_id']
+            data_id = message['id']
+            sqs_handle = message["ReceiptHandle"]
+
+            tasks.append(
+                do_task(session, url, data_id, sqs_handle)
+            )
+        await asyncio.gather(*tasks, return_exceptions=True)
+
+
+def lambda_handler(event, context):
     messages = sqs.receive_message(
         QueueUrl=QUEUE_URL,
-        MaxNumberOfMessages=5,
+        MaxNumberOfMessages=MAX_RATE_MINUTE,
         WaitTimeSeconds=0,
         VisibilityTimeout=120
     ).get("Messages", [])
 
     if not messages:
         print("No messages to process")
-        return 0
-
-    for message in messages:
-        try:
-            body = json.loads(message["Body"])
-
-            data_id = body['id']
-            player_id = body['player_id']
-            player_data = scrape(player_id)
-
-            if not player_data:
-                delete_db_row(data_id)
-            else:
-                upload_data(data_id, player_data)
-
-            sqs.delete_message(
-                QueueUrl=QUEUE_URL,
-                ReceiptHandle=message["ReceiptHandle"]
-            )
-            if not player_data:
-                print(f"Player id processed without results and removed: {player_id}")
-            else:
-                print(f"Player {player_data['name']} was processed")
-        except Exception as ex:
-            print(f"Failed processing message {message['MessageId']}: {ex}")
-    return len(messages)
-
-def lambda_handler(event, context):
-    processed_count = 0
-    for _ in range(60):
-        processed_count += process_messages()
-        time.sleep(1)
-
-    return {"processed": processed_count}
+    else:
+        asyncio.run(main(messages))
+    return {"processed": len(messages)}
