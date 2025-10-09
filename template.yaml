@@ -14,6 +14,9 @@ Parameters:
   DataS3Key:
     Type: String
     Description: CSV file which contains base template for DynamoDB
+  NotificationEmail:
+    Type: String
+    Description: An e-mail address which to send a notification once the task is done
 
 Resources:
   Database:
@@ -186,3 +189,32 @@ Resources:
       Action: lambda:InvokeFunction
       Principal: events.amazonaws.com
       SourceArn: !GetAtt ScraperEventRule.Arn
+  NotificationTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: ScraperNotificationTopic
+      TopicName: ScraperNotificationTopic
+  NotificationSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Endpoint: !Ref NotificationEmail
+      Protocol: email
+      TopicArn: !Ref NotificationTopic
+  DynamoDBThroughputAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions:
+        - !Ref NotificationTopic
+      AlarmDescription: "Scraper DynamoDB thoughput has been 0 for an hour. Either it's finished or something went wrong"
+      AlarmName: "DynamoDBThroughputAlarm-Zero"
+      ComparisonOperator: LessThanOrEqualToThreshold
+      Dimensions:
+        - Name: TableName
+          Value: !Ref DynamoDBTableName
+      Period: 600 # seconds
+      EvaluationPeriods: 6
+      MetricName: ScrapingDynamoDBThroughputMetric
+      Namespace: AWS/DynamoDB
+      Statistic: Sum
+      Threshold: 0
+      TreatMissingData: notBreaching
