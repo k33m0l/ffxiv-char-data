@@ -213,7 +213,7 @@ Resources:
           Value: !Ref DynamoDBTableName
       Period: 600 # seconds
       EvaluationPeriods: 6
-      MetricName: ScrapingDynamoDBThroughputMetric
+      MetricName: ConsumedWriteCapacityUnits
       Namespace: AWS/DynamoDB
       Statistic: Sum
       Threshold: 0
