@@ -42,6 +42,6 @@ Gather data of FFXIV Characters created
 5. Wait patiently :) Do not forget to delete the CloudFormation Stack if you don't want to run this anymore. It won't auto delete.
    1. You can delete the resources with `sam delete --stack-name FFXIV`, where stack-name is what you provided during the deployment
 
-> [!INFO]
+> [!IMPORTANT]
 > To enable the e-mail notification when the DynameDB write throughput drops to zero, subscribe to the SNS topic you'll get in your e-mail during deployment.
 
