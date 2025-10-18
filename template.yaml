@@ -198,7 +198,7 @@ Resources:
     Type: AWS::SNS::Subscription
     Properties:
       Endpoint: !Ref NotificationEmail
-      Protocol: email
+      Protocol: email-json
       TopicArn: !Ref NotificationTopic
   DynamoDBThroughputAlarm:
     Type: AWS::CloudWatch::Alarm
