@@ -5,6 +5,8 @@ lower_limit = 1
 upper_limit = 1_000_000
 notification_threshold = 100_000
 
+EXPORT_LOCATION = "../resources/base_ids.csv"
+
 uuid_list = []
 player_ids = []
 statuses = []
@@ -22,5 +24,5 @@ results = {
 }
 results_df = pandas.DataFrame.from_dict(results)
 print(results_df)
-results_df.to_csv('base_ids.csv', index=False)
+results_df.to_csv(EXPORT_LOCATION, index=False)
 print("CSV exported...")

@@ -5,6 +5,7 @@ from boto3.dynamodb.conditions import Key
 dynamodb = boto3.resource("dynamodb")
 TABLE_NAME = "FFXIV"
 LIMIT = 200
+DOWNLOAD_FILE = "../resources/results_raw_downloaded.csv"
 
 table = dynamodb.Table(TABLE_NAME)
 
@@ -38,4 +39,5 @@ while True:
         break
 
 df = pandas.DataFrame(items)
-df.to_csv("results.csv", index=False)
+df.to_csv(DOWNLOAD_FILE, index=False)
+
