@@ -1,7 +1,4 @@
 # Project ignores
-base_ids.csv
-small_base_ids.csv
-results.csv
 layer/
 resources/
 .aws-sam/
