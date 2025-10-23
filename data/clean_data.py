@@ -3,6 +3,7 @@ import glob
 import os
 
 PATH = '../resources/raw/'
+EXPORT_PATH = '../resources/cleaned.csv'
 
 all_files = glob.glob(os.path.join(PATH, '*.csv'))
 
@@ -137,5 +138,34 @@ full_df = full_df.drop(columns=[
     'Miner',
 ])
 
+# Format World and Data center data
+full_df[['world', 'dc']] = full_df['world'].str.split(' ', expand=True)
+full_df['dc'] = full_df['dc'].str.replace('\[{1}|\]{1}', '', regex=True)
+
+# Format Race, Gender, and Clan
+full_df[['Race/Clan', 'Gender']] = full_df['Race/Clan/Gender'].str.split(' / ', expand=True)
+full_df['Gender'] = full_df['Gender'].str.replace('♀', 'Female')
+full_df['Gender'] = full_df['Gender'].str.replace('♂', 'Male')
+
+def split_race_clan(value, known_races):
+    for race in known_races:
+        if value.startswith(race):
+            return pandas.Series([race, value[len(race):].strip()])
+    return pandas.Series([None, value])
+
+races = ["Miqo'te", 'Au Ra', 'Elezen', 'Hyur', 'Lalafell', 'Roegadyn', 'Viera', 'Hrothgar']
+full_df['Race/Clan'] = full_df['Race/Clan'].fillna('Unknown')
+full_df[['Race', 'Clan']] = full_df['Race/Clan'].apply(split_race_clan, known_races=races)
+
+full_df = full_df.drop(columns=['Race/Clan', 'Race/Clan/Gender']) 
+
+# Format everything else
+full_df['title'] = full_df['title'].fillna('')
+full_df['Grand Company'] = full_df['Grand Company'].fillna('Unaligned')
+full_df['pvp'] = full_df['pvp'].fillna('Unaligned')
+
 print(full_df.columns.values)
 print(full_df)
+
+full_df.to_csv(EXPORT_PATH, index=False)
+
