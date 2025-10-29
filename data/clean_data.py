@@ -5,13 +5,10 @@ import os
 PATH = '../resources/raw/'
 EXPORT_PATH = '../resources/cleaned.csv'
 
+print("Merging all raw  csv together")
 all_files = glob.glob(os.path.join(PATH, '*.csv'))
-
-# Combine all files into one
-for file in all_files:
-    df = pandas.read_csv(file)
-    full_df = df
-
+frames = [pandas.read_csv(file) for file in all_files]
+full_df = pandas.concat(frames)
 
 full_df = full_df.drop(columns=['error', 'status', 'id'])
 
@@ -23,6 +20,7 @@ def clean_job(short_name: str):
     global full_df
     full_df[short_name] = full_df[short_name].where(full_df[short_name].ne('-'), 0).fillna(0.0).astype(int)
 
+print("Merging and cleaning duplicate jobs")
 merge_duplicate_job('PLD', 'Gladiator', 'Paladin / Gladiator')
 merge_duplicate_job('WAR', 'Marauder', 'Warrior / Marauder')
 merge_duplicate_job('DRG', 'Lancer', 'Dragoon / Lancer')
@@ -45,6 +43,7 @@ clean_job('NIN')
 clean_job('SMN')
 clean_job('SCH')
 
+print("Renaming and cleaning remaining jobs")
 full_df['DRK'] = full_df['Dark Knight']
 clean_job('DRK')
 full_df['MCH'] = full_df['Machinist']
@@ -138,6 +137,7 @@ full_df = full_df.drop(columns=[
     'Miner',
 ])
 
+print("Reformatting the remaining data")
 # Format World and Data center data
 full_df[['world', 'dc']] = full_df['world'].str.split(' ', expand=True)
 full_df['dc'] = full_df['dc'].str.replace('\[{1}|\]{1}', '', regex=True)
@@ -167,5 +167,6 @@ full_df['pvp'] = full_df['pvp'].fillna('Unaligned')
 print(full_df.columns.values)
 print(full_df)
 
+print("Exporting to CSV file")
 full_df.to_csv(EXPORT_PATH, index=False)
 
