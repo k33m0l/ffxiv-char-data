@@ -164,6 +164,9 @@ full_df['title'] = full_df['title'].fillna('')
 full_df['Grand Company'] = full_df['Grand Company'].fillna('Unaligned')
 full_df['pvp'] = full_df['pvp'].fillna('Unaligned')
 
+# Drop duplicates when working of multiple csv
+full_df.drop_duplicates(inplace=True)
+
 print(full_df.columns.values)
 print(full_df)
 
