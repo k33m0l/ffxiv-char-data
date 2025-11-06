@@ -18,5 +18,5 @@ data['City-state'].value_counts().plot.pie(
 )
 
 pyplot.tight_layout()
-pyplot.show()
+pyplot.savefig('../results/faction_distribution_chart.png', bbox_inches='tight')
 
