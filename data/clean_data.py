@@ -157,11 +157,15 @@ races = ["Miqo'te", 'Au Ra', 'Elezen', 'Hyur', 'Lalafell', 'Roegadyn', 'Viera', 
 full_df['Race/Clan'] = full_df['Race/Clan'].fillna('Unknown')
 full_df[['Race', 'Clan']] = full_df['Race/Clan'].apply(split_race_clan, known_races=races)
 
-full_df = full_df.drop(columns=['Race/Clan', 'Race/Clan/Gender']) 
+
+# Format faction and rank
+full_df['Grand Company'] = full_df['Grand Company'].fillna('Unaligned / Unaligned')
+full_df[['faction', 'rank']] = full_df['Grand Company'].str.split(' / ', expand=True)
+
+full_df = full_df.drop(columns=['Race/Clan', 'Race/Clan/Gender', 'Grand Company']) 
 
 # Format everything else
 full_df['title'] = full_df['title'].fillna('')
-full_df['Grand Company'] = full_df['Grand Company'].fillna('Unaligned')
 full_df['pvp'] = full_df['pvp'].fillna('Unaligned')
 
 # Drop duplicates when working of multiple csv

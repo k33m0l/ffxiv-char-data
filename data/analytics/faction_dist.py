@@ -3,13 +3,17 @@ import matplotlib.pyplot as pyplot
 import matplotlib.patheffects as effects
 
 data = pandas.read_csv('../../resources/cleaned.csv')
-explode = (0.05,0.05,0.05)
+
+print(data['faction'].value_counts())
+print(data.sample(10)[['player_id', 'faction']])
+
+explode = (0.05,0.05,0.05,0.05)
 textprops = {
     'size': 16,
     'color':'black',
     'weight':'bold'
 }
-data['City-state'].value_counts().plot.pie(
+data['faction'].value_counts().plot.pie(
     autopct='%1.2f%%',
     startangle=90,
     explode=explode,
