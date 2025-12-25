@@ -3,12 +3,24 @@ Gather data of FFXIV Characters created
 
 Cleaned CSV is available for download at [Link](https://mega.nz/file/TJ9yEJyR#lgb-a_WuwfnesTveKuhStb0KBgbUVIbScNbHxubIlrg) (about 2.2 million rows)
 
+## Requirements to run analytics Jupyter Notebook
+* Python
+* Pip
+* Jupyter Notebook
+
+## How to run jupyter notebook
+* Place the downloaded `cleaned.csv` into a `./resources/` folder
+* Create a Python virtual environment
+* Run `pip install -r ./data/requirements.txt`
+* Start Jupyter Notebook and select `./data/analytics/analytics.ipynb`
+* That's it :)
+
 > [!CAUTION]
 > This is a web scraping tool!
 > 
 > Use it with caution! Do not disturb others and cause harm!
 
-## Requirements
+## Requirements to run scraper
 * An AWS account
 * AWS CLI
 * AWS SAM
