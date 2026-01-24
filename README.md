@@ -43,6 +43,8 @@ Cleaned CSV is available for download at [Link](https://mega.nz/file/TJ9yEJyR#lg
 ## Deployment
 ### Database base CSV
 * Generate the base CSV using the [base_csv_generator.py](util/base_csv_generator.py)
+    * `python util/base_csv_generator.py -l 5000000 -u 10000000 -o output.csv`
+    * All parameters have defaults, use the `python util/base_csv_generator.py --help` to learn more
 * Create an S3 bucket or use an existing one
 * Upload the [base_ids.csv](util/base_ids.csv) to S3
 
