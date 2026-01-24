@@ -1,5 +1,9 @@
+pandas
 boto3
 beautifulsoup4
 requests
 aiolimiter
 aiohttp
+matplotlib
+PyQt6
+ipykernel
