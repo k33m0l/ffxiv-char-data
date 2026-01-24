@@ -29,7 +29,7 @@ Cleaned CSV is available for download at [Link](https://mega.nz/file/TJ9yEJyR#lg
 * Make
 
 ## Architecture
-![Architecture diagram for the app](https://github.com/k33m0l/ffxiv-char-spider/blob/main/FFXIV_crawler.drawio.png)
+![Architecture diagram for the app](docs/new_arch.png)
 
 ## Configure
 * There is a hard limit on 4500 request per 15 minutes and 5 requests per second, which can only be changed through code updates.
