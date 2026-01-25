@@ -88,6 +88,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: FinalFantasyScraperFucntion
+      ReservedConcurrentExecutions: 1
       CodeUri: ./scraper
       Handler: lambda.lambda_handler
       Runtime: python3.14
