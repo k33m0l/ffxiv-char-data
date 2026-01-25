@@ -1,19 +1,16 @@
 import asyncio
-import json
 import os
-from scraper import scrape, URL
 
 import aiohttp
 import boto3
 from aiohttp import ClientSession
+from boto3.dynamodb.conditions import Key
+
+from scraper import scrape, URL, MAX_RATE_SECOND
 
 dynamodb = boto3.resource("dynamodb")
-sqs = boto3.client("sqs")
-
 TABLE_NAME = os.environ.get("TABLE_NAME")
-QUEUE_URL = os.environ.get("QUEUE_URL")
-
-MAX_RATE_MINUTE = 300
+MAX_RATE_MINUTE = MAX_RATE_SECOND * 60
 
 def upload_data(data_id, player_data):
     try:
@@ -44,51 +41,41 @@ def delete_db_row(data_id):
         print(f"Failed deleting data with id {data_id}: {ex}")
 
 
-async def do_task(session: ClientSession, url: str, data_id, sqs_handle):
+async def do_task(session: ClientSession, url: str, data_id):
     data = await scrape(session, url)
     if not data:
         delete_db_row(data_id)
     else:
         upload_data(data_id, data)
-    sqs.delete_message(
-        QueueUrl=QUEUE_URL,
-        ReceiptHandle=sqs_handle
-    )
     if not data:
         print(f"Player id processed without results and removed: '{url}'")
     else:
         print(f"Player {data['name']} was processed")
 
 
-async def main(messages):
+async def main(items):
     async with aiohttp.ClientSession() as session:
         tasks = []
-        for message in messages:
-            json_message = json.loads(message["Body"])
-            url = URL + json_message['player_id']
-            data_id = json_message['id']
-            sqs_handle = message["ReceiptHandle"]
+        for item in items:
+            url = URL + item.get('player_id')
+            data_id = item.get('id')
 
             tasks.append(
-                do_task(session, url, data_id, sqs_handle)
+                do_task(session, url, data_id)
             )
         await asyncio.gather(*tasks, return_exceptions=True)
 
-
 def lambda_handler(event, context):
-    messages = []
-    while len(messages) < MAX_RATE_MINUTE:
-        messages.extend(
-            sqs.receive_message(
-                QueueUrl=QUEUE_URL,
-                MaxNumberOfMessages=10,
-                WaitTimeSeconds=0,
-                VisibilityTimeout=120
-            ).get("Messages", [])
-        )
-        if not messages:
-            print("No messages to process")
-            return {"processed": 0}
+    table = dynamodb.Table(TABLE_NAME)
+    items = table.query(
+        IndexName='status-index',
+        KeyConditionExpression=Key("status").eq("PENDING"),
+        Limit=MAX_RATE_MINUTE
+    ).get("Items", [])
 
-    asyncio.run(main(messages))
-    return {"processed": len(messages)}
+    if not items:
+        print("No messages to process")
+        return {"processed": 0}
+
+    asyncio.run(main(items))
+    return {"processed": len(items)}
