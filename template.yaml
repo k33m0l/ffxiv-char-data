@@ -49,74 +49,6 @@ Resources:
               KeyType: HASH
           Projection:
             ProjectionType: ALL
-  IdQueue:
-    Type: AWS::SQS::Queue
-    Properties:
-      VisibilityTimeout: 120
-      MessageRetentionPeriod: 86400
-      QueueName: FFXIVPlayerQueue
-      Tags:
-        - Key: Project
-          Value: FFXIV
-  LoaderLambdaExecutionRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: lambda.amazonaws.com
-            Action: sts:AssumeRole
-      Policies:
-        - PolicyName: LambdaPolicy
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action:
-                  - dynamodb:Query
-                Resource: "*"
-              - Effect: Allow
-                Action:
-                  - sqs:SendMessage
-                Resource: !GetAtt IdQueue.Arn
-              - Effect: Allow
-                Action:
-                  - logs:CreateLogGroup
-                  - logs:CreateLogStream
-                  - logs:PutLogEvents
-                Resource: "*"
-  LoaderLambdaFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: DynamoToSQSFunction
-      CodeUri: ./loader
-      Handler: loader.lambda_handler
-      Runtime: python3.14
-      Role: !GetAtt LoaderLambdaExecutionRole.Arn
-      Timeout: 120
-      MemorySize: 512
-      Environment:
-        Variables:
-          TABLE_NAME: !Ref DynamoDBTableName
-          QUEUE_URL: !Ref IdQueue
-  LoaderEventRule:
-    Type: AWS::Events::Rule
-    Properties:
-      Name: FFXIVDynamoToSQSRule
-      ScheduleExpression: rate(15 minutes)
-      State: ENABLED
-      Targets:
-        - Arn: !GetAtt LoaderLambdaFunction.Arn
-          Id: DynamoToSQSTarget
-  LoaderLambdaInvokePermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      FunctionName: !Ref LoaderLambdaFunction
-      Action: lambda:InvokeFunction
-      Principal: events.amazonaws.com
-      SourceArn: !GetAtt LoaderEventRule.Arn
   ScraperLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
@@ -142,15 +74,10 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
+                  - dynamodb:Query
                   - dynamodb:UpdateItem
                   - dynamodb:DeleteItem
                 Resource: "*"
-              - Effect: Allow
-                Action:
-                  - sqs:ReceiveMessage
-                  - sqs:DeleteMessage
-                  - sqs:GetQueueAttributes
-                Resource: !GetAtt IdQueue.Arn
               - Effect: Allow
                 Action:
                   - logs:CreateLogGroup
@@ -170,18 +97,17 @@ Resources:
       Environment:
         Variables:
           TABLE_NAME: !Ref DynamoDBTableName
-          QUEUE_URL: !Ref IdQueue
       Layers:
         - !Ref ScraperLayer
   ScraperEventRule:
     Type: AWS::Events::Rule
     Properties:
-      Name: FFXIVSQSToDynamoEventRule
+      Name: ScraperEventRule
       ScheduleExpression: rate(1 minute)
       State: ENABLED
       Targets:
         - Arn: !GetAtt ScraperLambdaFunction.Arn
-          Id: SQSToDynamoTarget
+          Id: ScraperTarget
   ScraperLambdaInvokePermission:
     Type: AWS::Lambda::Permission
     Properties:
