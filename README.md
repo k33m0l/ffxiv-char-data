@@ -32,13 +32,8 @@ Cleaned CSV is available for download at [Link](https://mega.nz/file/TJ9yEJyR#lg
 ![Architecture diagram for the app](docs/new_arch.png)
 
 ## Configure
-* There is a hard limit on 4500 request per 15 minutes and 5 requests per second, which can only be changed through code updates.
-* Update [FETCH_LIMIT](loader/loader.py) to configure the number of IDs that go into SQS every 15 minutes
-* Update [MAX_RATE_SECOND](scraper/lambda.py) to configure the maximum number of requests per second
-  * Be very careful with this to not send too many requests to the website 
-* Update [MAX_RATE_MINUTE](scraper/lambda.py) to configure how many messages it pulls from SQS every minute
-* Update [LoaderEventRule -> ScheduleExpression](template.yaml) timing to change how often the loader lambda gets triggered
-* Update [ScraperEventRule -> ScheduleExpression](template.yaml) timing to change how often the scraper lambda gets triggered
+* Update [MAX_RATE_SECOND](scraper/scraper.py) to configure the maximum number of requests per second
+  * Be very careful with this to not send too many requests to the website
 
 ## Deployment
 ### Database base CSV
