@@ -1,8 +1,6 @@
 # ffxiv-char-spider
 Gather data of FFXIV Characters created
 
-Cleaned CSV is available for download at [Link](https://mega.nz/file/TJ9yEJyR#lgb-a_WuwfnesTveKuhStb0KBgbUVIbScNbHxubIlrg) (about 2.2 million rows)
-
 ## Requirements to run analytics Jupyter Notebook
 * Python
 * Pip
